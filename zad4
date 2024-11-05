@@ -1,0 +1,70 @@
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+
+
+typedef struct Element* Position;
+struct Element {
+    int coeff;
+    int exp;
+    Position next;
+};
+
+InsertAfter(Position head , Position nE);
+{
+
+
+}
+
+int InsertSorted(Position head, Position nE)
+{
+
+    Position temp = head;
+
+    while (temp->next != NULL && temp->next->exp < nE->exp)
+    {
+        temp = temp->next;
+    }
+
+    if (temp->next == NULL || temp->next->exp != nE->exp) {
+        InsertAfter(temp, nE);
+    }
+
+    else
+    {
+        int resultcoeffs = nE->coeff + temp->next->coeff;
+        if (resultcoeffs == 0)
+        {
+            DeleteAfter(temp);
+            free(nE);
+        }
+        else
+        {
+            temp->next->coeff = resultcoeffs;
+            free(nE);
+        }
+
+    }
+}
+//Čitanje iz datoteke
+
+
+
+ fgets(buffer,MAXLINE,file)
+
+     while(strlen(buffer > 0)
+ {
+     
+         int status = sscanf(buffer, " %d %d %n", &c, &e, &numBytes);
+
+         nE=CreateE(c, e);
+         InsertSorted(head, nE);
+             buffer = buffer + numBytes;
+     
+     }
+
+
+ //Zbrajanje polinoma
+
