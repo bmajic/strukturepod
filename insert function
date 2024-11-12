@@ -1,0 +1,32 @@
+Position Insert(Position head, int coeff, int ex) {
+    Position temp;
+    Position nE = (Position)malloc(sizeof(struct Element));
+
+    if (nE == NULL) {
+        printf("Error in malloc\n");
+        return NULL;
+    }
+
+    nE->coeff = coeff;
+    nE->exp = ex;
+    nE->next = NULL;
+
+    // Ako je lista prazna ili eksponent novog elementa je veći od eksponenta trenutne glave
+    if (head == NULL || ex > head->exp) {
+        nE->next = head;
+        head = nE;
+        return head;
+    }
+
+    // Pronađi mesto gde novi element treba da se umetne
+    temp = head;
+    while (temp->next != NULL && temp->next->exp >= ex) {
+        temp = temp->next;
+    }
+
+    // Umetni novi element u listu
+    nE->next = temp->next;
+    temp->next = nE;
+
+    return head;
+}
