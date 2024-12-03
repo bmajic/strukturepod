@@ -1,0 +1,45 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct atrikal* pozicija_artikla;
+typedef struct racun* pozicija_racuna;
+
+typedef struct artikal
+{
+	char naziv[1024];
+	int kolicina;
+	float cijena;
+	pozicija_artikla next;
+
+} artikal;
+
+typedef struct racun
+{
+	int godina, mjesec, dan;
+	pozicija_racuna next;
+	artikal head_artikal;
+
+} racun;
+
+int Citaj_datoteku (pozicija_racuna);
+pozicija_racuna Kreiraj_racun(pozicija_racuna, int, int, int);
+int Citaj_Racun(char[], pozicija_racuna);
+int Sortiraj_artikle(pozicija_racuna, char[], int, float);
+int Sortiraj_racune(pozicija_racuna, pozicija_racuna);
+int Print(pozicija_racuna);
+
+
+int main()
+{
+	racun head_racun = { .godina = 0, .mjesec = 0, .dan = 0, .next = NULL, .head_artikal = {.naziv = {0}, .kolicina = 0, .cijena = 0.0 } };
+	Citaj_datoteku (&head_racun);
+	Print (&head_racun);
+	// .......
+}
+
+int Citaj_datoteku(pozicija_racuna head_racun)
+{
+	FILE* fp = NULL;
+	//....
+}
