@@ -1,0 +1,147 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+// Typedef for pointers to Artikal and Racun structs
+typedef struct artikal* pozicija_artikla;
+typedef struct racun* pozicija_racuna;
+
+typedef struct artikal {
+    char naziv[1024];         // Name of the item
+    int kolicina;             // Quantity of the item
+    float cijena;             // Price of the item
+    pozicija_artikla next;    // Pointer to the next item in the list
+} Artikal;
+
+typedef struct racun {
+    int godina, mjesec, dan;  // Date of the invoice
+    pozicija_racuna next;     // Pointer to the next invoice
+    Artikal head_artikal;     // Dummy head for the item list
+} Racun;
+
+typedef struct {
+    pozicija_racuna head;  // Pointer to the first invoice
+} ListaRacuna;
+
+// Function to create a new invoice
+pozicija_racuna Kreiraj_racun(int godina, int mjesec, int dan) {
+    pozicija_racuna novi = (pozicija_racuna)malloc(sizeof(Racun));
+    novi->godina = godina;
+    novi->mjesec = mjesec;
+    novi->dan = dan;
+    novi->next = NULL;
+    novi->head_artikal.next = NULL;
+    return novi;
+}
+
+// Function to add a new invoice to the list
+void Dodaj_racun(ListaRacuna *lista, int godina, int mjesec, int dan) {
+    pozicija_racuna novi = Kreiraj_racun(godina, mjesec, dan);
+
+    if (!lista->head || (lista->head->godina > godina ||
+                        (lista->head->godina == godina && lista->head->mjesec > mjesec) ||
+                        (lista->head->godina == godina && lista->head->mjesec == mjesec && lista->head->dan > dan))) {
+        novi->next = lista->head;
+        lista->head = novi;
+    } else {
+        pozicija_racuna trenutni = lista->head;
+        while (trenutni->next &&
+               (trenutni->next->godina < godina ||
+                (trenutni->next->godina == godina && trenutni->next->mjesec < mjesec) ||
+                (trenutni->next->godina == godina && trenutni->next->mjesec == mjesec && trenutni->next->dan < dan))) {
+            trenutni = trenutni->next;
+        }
+        novi->next = trenutni->next;
+        trenutni->next = novi;
+    }
+}
+
+// Function to add a new item to an invoice
+void Dodaj_artikl(pozicija_racuna racun, char *naziv, int kolicina, float cijena) {
+    pozicija_artikla novi = (pozicija_artikla)malloc(sizeof(Artikal));
+    strcpy(novi->naziv, naziv);
+    novi->kolicina = kolicina;
+    novi->cijena = cijena;
+    novi->next = NULL;
+
+    pozicija_artikla head = &racun->head_artikal;
+    if (!head->next || strcmp(head->next->naziv, naziv) > 0) {
+        novi->next = head->next;
+        head->next = novi;
+    } else {
+        pozicija_artikla trenutni = head->next;
+        while (trenutni->next && strcmp(trenutni->next->naziv, naziv) < 0) {
+            trenutni = trenutni->next;
+        }
+        novi->next = trenutni->next;
+        trenutni->next = novi;
+    }
+}
+
+// Function to read a single invoice from a file and add it to the list
+void Citaj_racun(char *filename, ListaRacuna *lista) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Greška pri otvaranju datoteke %s.\n", filename);
+        return;
+    }
+
+    int godina, mjesec, dan;
+    fscanf(file, "%d-%d-%d", &godina, &mjesec, &dan);
+    Dodaj_racun(lista, godina, mjesec, dan);
+
+    pozicija_racuna racun = lista->head;
+    while (racun->next && (racun->next->godina < godina ||
+                           (racun->next->godina == godina && racun->next->mjesec < mjesec) ||
+                           (racun->next->godina == godina && racun->next->mjesec == mjesec && racun->next->dan < dan))) {
+        racun = racun->next;
+    }
+
+    char naziv[1024];
+    int kolicina;
+    float cijena;
+    while (fscanf(file, " %[^,], %d, %f", naziv, &kolicina, &cijena) == 3) {
+        Dodaj_artikl(racun, naziv, kolicina, cijena);
+    }
+
+    fclose(file);
+}
+
+// Function to read a list of invoice filenames and process each one
+void Citaj_datoteku(ListaRacuna *lista, const char *datoteka) {
+    FILE *file = fopen(datoteka, "r");
+    if (!file) {
+        printf("Datoteka %s ne postoji.\n", datoteka);
+        return;
+    }
+
+    char filename[1024];
+    while (fscanf(file, "%s", filename) == 1) {
+        Citaj_racun(filename, lista);
+    }
+
+    fclose(file);
+}
+
+// Function to print all invoices and their items
+void Print(ListaRacuna *lista) {
+    pozicija_racuna trenutni_racun = lista->head;
+    while (trenutni_racun) {
+        printf("Datum: %d-%02d-%02d\n", trenutni_racun->godina, trenutni_racun->mjesec, trenutni_racun->dan);
+        pozicija_artikla trenutni_artikl = trenutni_racun->head_artikal.next;
+        while (trenutni_artikl) {
+            printf("  %s, Količina: %d, Cijena: %.2f\n", trenutni_artikl->naziv, trenutni_artikl->kolicina, trenutni_artikl->cijena);
+            trenutni_artikl = trenutni_artikl->next;
+        }
+        trenutni_racun = trenutni_racun->next;
+    }
+}
+
+// Main function to test the implementation
+int main() {
+    ListaRacuna lista = {NULL};
+    Citaj_datoteku(&lista, "racuni.txt");
+    Print(&lista);
+    return 0;
+}
