@@ -1,0 +1,122 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Directory* position;
+
+struct Directory {
+    char name[100];
+    position parent;
+    position subdirs;
+    position next;
+};
+
+position currentPosition;
+
+position createDirectory(const char* name, position parent) {
+    position newDir = (position)malloc(sizeof(struct Directory));
+    strcpy(newDir->name, name);
+    newDir->parent = parent;
+    newDir->subdirs = NULL;
+    newDir->next = NULL;
+    return newDir;
+}
+
+void addSubdirectory(const char* name) {
+    position newDir = createDirectory(name, currentPosition);
+    if (currentPosition->subdirs == NULL) {
+        currentPosition->subdirs = newDir;
+    }
+    else {
+        position temp = currentPosition->subdirs;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = newDir;
+    }
+    printf("Directory '%s' created.\n", name);
+}
+
+void listDirectoryContents() {
+    printf("Contents of directory '%s':\n", currentPosition->name);
+    if (currentPosition->subdirs == NULL) {
+        printf("(Empty)\n");
+    }
+    else {
+        position temp = currentPosition->subdirs;
+        while (temp != NULL) {
+            printf("%s\n", temp->name);
+            temp = temp->next;
+        }
+    }
+}
+
+void changeDirectory(const char* name) {
+    position temp = currentPosition->subdirs;
+    while (temp != NULL) {
+        if (strcmp(temp->name, name) == 0) {
+            currentPosition = temp;
+            printf("Changed to directory '%s'.\n", name);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Directory '%s' not found.\n", name);
+}
+
+void goBack() {
+    if (currentPosition->parent != NULL) {
+        currentPosition = currentPosition->parent;
+        printf("Returned to parent directory '%s'.\n", currentPosition->name);
+    }
+    else {
+        printf("Already at the root directory.\n");
+    }
+}
+
+int main() {
+
+    position root = createDirectory("root", NULL);
+    currentPosition = root;
+
+    int choice;
+    char name[100];
+
+    while (1) {
+        
+        printf("\nMenu:\n");
+        printf("1 - md (make directory)\n");
+        printf("2 - cd dir (change directory)\n");
+        printf("3 - cd.. (go back)\n");
+        printf("4 - dir (list contents)\n");
+        printf("5 - Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            printf("Enter directory name: ");
+            scanf("%s", name);
+            addSubdirectory(name);
+            break;
+        case 2:
+            printf("Enter directory name to navigate into: ");
+            scanf("%s", name);
+            changeDirectory(name);
+            break;
+        case 3:
+            goBack();
+            break;
+        case 4:
+            listDirectoryContents();
+            break;
+        case 5:
+            printf("Exiting program.\n");
+            return 0;
+        default:
+            printf("Invalid choice. Please try again.\n");
+        }
+    }
+
+    return 0;
+}
