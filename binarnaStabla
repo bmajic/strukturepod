@@ -1,0 +1,253 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+
+
+typedef struct tree* position;
+
+struct tree {
+
+	int value;
+	position left;
+	position right;
+
+};
+
+
+position createNewNode(int value)
+{
+
+	position nE = (position)malloc(sizeof(tree);
+	if (!nE) return NULL;
+
+
+	nE->value = value;
+	nE->right = NULL;
+	nE->left = NULL;
+
+
+	return nE;
+
+
+}
+
+position Insert(position root, int value)
+{
+
+	if (root == NULL)
+	{
+		return createNewNode(value);
+	}
+
+
+	if (value < root->value)
+	{
+		root->left = Insert(root->left, value);
+	}
+	else if(value > root->value )
+	{
+		root->right = Insert(root->right, value);
+	}
+
+	return root;
+}
+
+position Delete(position root, int value)
+{
+	if (root == NULL) return root;
+
+	if (value < root->value)
+	{
+		root->left = Delete(root->left, value);
+	}
+	else if (value > root->value)
+	{
+		root->right = Delete(root->right, value);
+	}
+	else
+	{
+		if (root->left == NULL)
+		{
+			position temp = root->right;
+			free(root);
+			return temp;
+		}
+		else if (root->right == NULL)
+		{
+			position temp = root->left;
+			free(root);
+			return temp;
+		}
+
+		// Čvor s dva djeteta
+		position temp = FindMin(root->right);
+		root->value = temp->value;
+		root->right = Delete(root->right, temp->value);
+	}
+
+	return root;
+	}
+
+position FindMin(position root)
+{
+	while (root && root->left != 0)
+	{
+		root = root->left;
+	}
+
+	return root;
+}
+
+position Find(position root, int value)
+{
+	if(root ==NULL || root->value == value)
+	{
+		return root;
+	}
+
+	if (root->value < value)
+	{
+		 return Find(root->left, value);
+	}
+
+	return Find(root->right, value);
+}
+
+void Inorder(position root)
+{
+
+	if (root != NULL)
+	{
+		Inorder(root->left);
+		printf("%d", root->value);
+		Inorder(root->right);
+	}
+
+}
+
+void Preorder(position root)
+{
+
+	if (root != NULL)
+	{
+		
+		printf("%d", root->value);
+		Preorder(root->left);
+		Preorder(root->right);
+	}
+
+}
+
+void Postorder(position root) {
+	if (root != NULL) {
+		Postorder(root->left);
+		Postorder(root->right);
+		printf("%d ", root->value);
+	}
+}
+
+
+void freeTree(position root)
+{
+
+	if (root != NULL)
+	{
+		freeTree(root->left);
+		freeTree(root->right);
+		free(root);
+	}
+}
+
+position Deletee(position root, int value)
+{
+	if (root == NULL) return root;
+
+	if (value < root->value)
+	{
+		root->left = Deletee(root->left, value);
+	}
+	else if (value > root->value)
+	{
+		root->right = Deletee(root->right, value);
+	}
+
+	else {
+
+		if (root->left == NULL)
+		{
+			position temp = root->right;
+			free(root);
+			return temp;
+		}
+		else if (root->right == NULL)
+		{
+			position temp = root->left;
+			free(root);
+			return temp;
+		}
+
+
+		position temp = FindMin(root->right);
+		root->value = temp->value;
+
+		root->right = Delete(root->right, temp->value);
+	}
+
+	return root;
+}
+
+int main() {
+	position root = NULL;
+	int choice, value;
+
+	while (1) {
+		printf("\n1. Insert\n2. Delete\n3. Find\n4. Inorder\n5. Preorder\n6. Postorder\n7. Exit\n");
+		printf("Enter your choice: ");
+		scanf("%d", &choice);
+
+		switch (choice) {
+		case 1:
+			printf("Enter value to insert: ");
+			scanf("%d", &value);
+			root = Insert(root, value);
+			break;
+		case 2:
+			printf("Enter value to delete: ");
+			scanf("%d", &value);
+			root = Delete(root, value);
+			break;
+		case 3:
+			printf("Enter value to find: ");
+			scanf("%d", &value);
+			position found = Find(root, value);
+			if (found)
+				printf("Value %d found in tree.\n", value);
+			else
+				printf("Value %d not found in tree.\n", value);
+			break;
+		case 4:
+			printf("Inorder: ");
+			Inorder(root);
+			printf("\n");
+			break;
+		case 5:
+			printf("Preorder: ");
+			Preorder(root);
+			printf("\n");
+			break;
+		case 6:
+			printf("Postorder: ");
+			Postorder(root);
+			printf("\n");
+			break;
+		case 7:
+			freeTree(root);
+			return 0;
+		default:
+			printf("Invalid choice!\n");
+		}
+	}
+
+	return 0;
+}
