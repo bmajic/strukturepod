@@ -1,0 +1,113 @@
+#define _CRE_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+typedef struct Node* position;
+
+typedef struct Node {
+	int value;
+	position left;
+	position right;
+}Node;
+
+position create_node(int value) {
+	position newNode = (position)malloc(sizeof(Node));
+	newNode->value = value;
+	newNode->left = NULL;
+	newNode->right = NULL;
+	return newNode;
+}
+
+position insert(position root, int value) {
+
+	if (root == NULL) {
+		return create_node(value);
+	}
+
+	if (root->value <= value) {
+		root->left = insert(root->left, value);
+	}
+	if (root->value > value) {
+		root->right = insert(root->right, value);
+	}
+
+	return root;
+}
+
+void inorder(position root) {
+	if (root == NULL)
+		return;
+
+	inorder(root->left);
+	printf("%d ", root->value);
+	inorder(root->right);
+	return;
+}
+
+int replace(position root) {
+	if (root == NULL)return 0;
+
+	int left = replace(root->left);
+	int right = replace(root->right);
+	int oldValue = root->value;
+	root->value = left + right;
+	return oldValue + root->value;
+}
+
+void inorder_to_file(position root, FILE* file) {
+	if (root == NULL)
+		return;
+
+	inorder_to_file(root->left, file);
+	fprintf(file, "%d ", root->value);
+	inorder_to_file(root->right, file);
+}
+
+int main() {
+
+	
+
+	int i, n;
+	position root = NULL;
+	srand((unsigned)time(NULL));
+
+
+	printf("Unesite broj elemenata: ");
+	scanf_s("%d", &n);
+
+	for (i = 0; i < n; i++) {
+		int random_number = 10 + rand() % 81;
+		root = insert(root, random_number);
+	}
+
+
+	FILE* file = NULL;
+	if (fopen_s(&file, "output.txt", "w") != 0) {
+		perror("Datoteka se ne može otvoriti!");
+		exit(EXIT_FAILURE);
+	}
+
+	printf("Inorder ispis prije zamjene: ");
+	inorder(root);
+	printf("\n");
+
+	fprintf(file, "Inorder prije zamjene: ");
+	inorder_to_file(root, file);
+	fprintf(file, "\n");
+
+	replace(root);
+
+	printf("Inorder ispis nakon zamjene: ");
+	inorder(root);
+	printf("\n");
+
+	fprintf(file, "Inorder nakon zamjene: ");
+	inorder_to_file(root, file);
+	fprintf(file, "\n");
+
+	fclose(file);
+	printf("Podaci su zapisani u 'output.txt'.\n");
+
+	return 0;
+}
