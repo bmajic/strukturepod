@@ -1,0 +1,316 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+typedef struct racun* pozicija_racuna;
+typedef struct artikl* pozicija_artikla;
+
+
+struct racun {
+	int d, m, y;
+	pozicija_racuna next;
+	pozicija_artikla headArtilka;
+
+
+};
+
+struct artikl {
+
+	char naziv[1024];
+	int kolicina;
+	float cijena;
+	pozicija_artikla next;
+};
+
+int citajDatoteku(pozicija_racuna head_racuna)
+{
+	FILE* fp = fopen("racuni.txt", "r");
+	if (!fp)
+	{
+		printf("Greška pri otvaranju datoteke racuni.txt !\n");
+		return -1;
+	}
+
+	char imeRacuna[1024];
+
+	while (fscanf(fp, " % s", imeRacuna) == 1)
+	{
+		citaj_racun(imeRacuna, head_racuna);
+	}
+
+	fclose(fp);
+	return 0;
+}
+
+
+int citaj_racun(char naziv[], pozicija_racuna headRacuna)
+{
+	FILE* fp = fopen(naziv, "r");
+	if (!fp)return-1;
+
+
+	int dan, mjesec, godina;
+
+	fscanf(fp, "%d %d %d", &dan, &mjesec, &godina);
+
+
+	pozicija_racuna noviracun = kreirajRacun(headRacuna, dan, mjesec, godina);
+
+	char naziv[1024];
+	int kolicina;
+	float cijena;
+
+	while (fscanf(fp, "%c %d %f", naziv, &kolicina, &cijena) == 3)
+	{
+		kreirajArtiklSortirano(noviracun, naziv, kolicina, cijena);
+	}
+
+	fclose(fp);
+
+	return 0;
+
+}
+
+
+
+pozicija_racuna kreirajRacun(pozicija_racuna head, int dan, int mjesec, int godina)
+{
+
+	pozicija_racuna newBill = (pozicija_racuna)malloc(sizeof(racun));
+	if (!newBill) return NULL;
+
+	newBill->d = dan;
+	newBill->m = mjesec;
+	newBill->y = godina;
+
+	newBill->next = NULL;
+	newBill->headArtilka = NULL;
+
+	if (soritirajRacune(head, newBill) != 0) {
+		free(newBill);  
+		return NULL;
+	}
+
+	return newBill;
+
+}
+
+int soritirajRacune(pozicija_racuna head, pozicija_racuna nE)
+{
+	pozicija_racuna current = head;
+
+
+	while (current->next && (nE->y > current->next->y || (nE->y == current->next->y && nE->m > current->next->m) || (nE->y == current->next->y && nE->m == current->next->m && nE->d > current->next->d)))
+	{
+		current = current->next;
+	}
+
+	nE->next = current->next;
+	current->next = nE;
+
+	return 0;
+
+}
+
+
+pozicija_artikla kreirajArtiklSortirano(pozicija_racuna Racun, char naziv[],int kolicina,float cijena)
+{
+	pozicija_artikla novi = (pozicija_artikla)malloc(sizeof(artikl));
+	if (!novi)return NULL;
+
+	strcpy(novi->naziv, naziv);
+	novi->cijena = cijena;
+	novi->kolicina = kolicina;
+
+	novi->next = NULL;
+	
+
+	pozicija_artikla current = Racun->headArtilka;
+
+
+	while (current && strcmp(naziv, current->naziv) > 0)
+	{
+		current = current->next;
+	}
+
+
+	novi->next = current;
+	if (current == Racun->headArtilka) {
+		Racun->headArtilka = novi;  
+	}
+	else {
+		current->next = novi;
+	}
+
+	return novi;
+	}
+
+
+int print(pozicija_racuna head)
+{
+
+
+	pozicija_racuna current_racun = head->next;
+
+	while (current_racun)
+	{
+		printf("Datum: %d/y %d/m %d/d\n", current_racun->y, current_racun->m, current_racun->d);
+
+
+		pozicija_artikla current_artikl = current_racun->headArtilka->next;
+
+		while (current_artikl)
+		{
+			printf("Artikl:\n Naziv: %c Kolicina: %d Cijena: %f ", current_artikl->naziv, current_artikl->kolicina, current_artikl->cijena);
+
+			current_artikl = current_artikl->next;
+		}
+
+
+		current_racun = current_racun->next;
+	}
+
+	return 0;
+}
+
+
+int main()
+{
+
+	racun head_racun = { .godina = 0, .mjesec = 0, .dan = 0, .next = NULL, .head_artikal = {.naziv = {0}, .kolicina = 0, .cijena = 0.0, .next = NULL } };
+
+
+
+	int opcija = 0;
+
+	printf("Pozdrav!! Dobro došli u izbornik.Odaberite opciju koju želite unošenjem broja koji se nalazi uz istu!!");
+	do {
+		printf("\nIzbornik:\n");
+		printf("1. Ucitaj racune iz datoteke\n");
+		printf("2. Dodaj novi racun\n");
+		printf("3. Dodaj artikl u postojeci racun\n");
+		printf("4. Ispiši sve racune i artikle\n");
+		printf("0. Izlaz\n");
+		printf("Odaberite opciju: ");
+		scanf("%d", &opcija);
+
+		
+		switch (opcija)
+		{
+		case 1: {
+		
+			if (citajDatoteku(&head_racun) == 0)
+			{
+				printf("Racuni uspješno iscitani iz datoteke");
+			}
+
+			else
+			{
+				printf("Greška prilikom citanja iz datoteke!!");
+			}
+			break;
+		}
+
+		case 2: {
+
+			int d, m, y;
+			printf("Unesi dan mjesec i godinu");
+			scanf("%d %d %d", &y, &m, &d);
+
+			pozicija_racuna Racun = kreirajRacun(&head_racun, d, m, y);
+
+			if (racun)
+			{
+				printf("Racun uspješno dodan!");
+			}
+			else {
+			
+				printf("Greška pri dodavanju racuna");
+			}
+
+			break;
+		
+		}
+
+		case 3:
+		{
+			int godina, mjesec, dan;
+
+			printf("Unesite datum racuna kojem želite dodati artikl (godina mjesec dan): ");
+			scanf("%d %d %d", &godina, &mjesec, &dan);
+
+
+			pozicija_racuna temp = head_racun.next;
+
+
+			while (temp)
+			{
+				if (temp->y == godina && temp->m == mjesec && temp->d == dan)
+				{
+					break;
+				}
+
+				temp = temp->next;
+			}
+		
+
+			if (temp)
+			{
+				char naziv[1024];
+				double  cijena;
+				int kolicina;
+
+
+				printf("Unesite naziv artikla: ");
+				scanf("%s", naziv);
+				printf("Unesite kolicinu artikla: ");
+				scanf("%d", &kolicina);
+				printf("Unesite cijenu artikla: ");
+				scanf("%f", &cijena);
+
+
+
+				if (kreirajArtiklSortirano(temp, naziv, kolicina, cijena) == 0)
+				{
+					printf("Artikl je uspješno dodan");
+
+				}
+				else
+				{
+					printf("Grešk pri dodavnju artikla");
+				}
+			}
+			else
+			{
+				printf("Racun s unesim elemntima ne postaju");
+			}
+			break;
+
+			}
+		case 4: {
+			print(&head_racun);
+			break;
+		}
+		case 0: {
+			printf("Izlaz iz programa. Dovidenja!\n");
+			break;
+		}
+		default: {
+			printf("Nevažeca opcija, pokušajte ponovno.\n");
+			break;
+		}
+		}
+	} while (opcija != 0);
+
+
+
+
+	return 0;
+
+}
+
+
+
+
+
